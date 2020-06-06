@@ -63,15 +63,31 @@ func TestNewNamespace(t *testing.T) {
 }
 
 func TestFromString(t *testing.T) {
-	ns := MustNamespace("bla")
-	want := New(ns)
-	got, err := Parse(want.String())
-	if err != nil {
-		t.Fatalf("got %v; want nil", err)
-	}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("got %v; want %v", got, want)
-	}
+	t.Run("parse id", func(t *testing.T) {
+		ns := MustNamespace("bla")
+		want := New(ns)
+		got, err := Parse(want.String())
+		if err != nil {
+			t.Fatalf("got %v; want nil", err)
+		}
+		if !reflect.DeepEqual(got, want) {
+			t.Fatalf("got %v; want %v", got, want)
+		}
+	})
+
+	t.Run("parse ksuid", func(t *testing.T) {
+		v := ksuid.New()
+		id, err := Parse(v.String())
+		if err != nil {
+			t.Fatalf("got %v; want nil", err)
+		}
+		if got, want := id.ns, Unknown; !got.Equal(want) {
+			t.Fatalf("got %v; want %v", got, want)
+		}
+		if got, want := id.ksuid, v; !bytes.Equal(got[:], want[:]) {
+			t.Fatalf("got %v; want %v", got, want)
+		}
+	})
 }
 
 func TestNamespace_Equal(t *testing.T) {

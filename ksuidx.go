@@ -67,7 +67,16 @@ func FromBytes(b []byte) (id ID, err error) {
 
 // Parse a string representation of an ID
 func Parse(s string) (id ID, err error) {
-	if len(s) != stringEncodedLength {
+	if length := len(s); length == stringEncodedLength-nsLength {
+		v, err := ksuid.Parse(s)
+		if err != nil {
+			return ID{}, err
+		}
+		return ID{
+			ns:    Unknown,
+			ksuid: v,
+		}, nil
+	} else if length != stringEncodedLength {
 		return ID{}, errStringSize
 	}
 
