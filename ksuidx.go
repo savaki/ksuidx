@@ -96,6 +96,36 @@ func Parse(s string) (id ID, err error) {
 	return id, nil
 }
 
+// ParseNS ensures that the resulting ID has the provided namespace
+func ParseNS(s string, ns Namespace) (id ID, err error) {
+	length := len(s)
+	switch {
+	case length == stringEncodedLength-nsLength:
+		v, err := ksuid.Parse(s)
+		if err != nil {
+			return ID{}, err
+		}
+		return ID{
+			ns:    ns,
+			ksuid: v,
+		}, nil
+
+	case length != stringEncodedLength:
+		return ID{}, errStringSize
+
+	default:
+		v, err := ksuid.Parse(s[nsLength:])
+		if err != nil {
+			return ID{}, err
+		}
+
+		id.ns = ns
+		id.ksuid = v
+
+		return id, nil
+	}
+}
+
 // constructs a new
 func New(ns Namespace) ID {
 	id, err := NewRandom(ns)

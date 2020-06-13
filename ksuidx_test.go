@@ -202,3 +202,47 @@ func TestID_IsNil(t *testing.T) {
 		t.Fatalf("got %v; want true", ok)
 	}
 }
+
+func TestParseNamespace(t *testing.T) {
+	var (
+		ns   = MustNamespace("bla")
+		base = ksuid.New()
+	)
+
+	t.Run("upgrade", func(t *testing.T) {
+		str := base.String()
+		id, err := ParseNS(str, ns)
+		if err != nil {
+			t.Fatalf("got %v; want nil", err)
+		}
+
+		if got, want := id.KSUID(), base; !reflect.DeepEqual(got, want) {
+			t.Fatalf("got %v; want %v", got.String(), want.String())
+		}
+		if got, want := id.Namespace(), ns; got != want {
+			t.Fatalf("got %v; want %v", got.String(), want.String())
+		}
+	})
+
+	t.Run("ok", func(t *testing.T) {
+		raw := New(ns)
+		id, err := ParseNS(raw.String(), ns)
+		if err != nil {
+			t.Fatalf("got %v; want nil", err)
+		}
+
+		if got, want := id.KSUID(), raw.KSUID(); !reflect.DeepEqual(got, want) {
+			t.Fatalf("got %v; want %v", got.String(), want.String())
+		}
+		if got, want := id.Namespace(), ns; got != want {
+			t.Fatalf("got %v; want %v", got.String(), want.String())
+		}
+	})
+
+	t.Run("err", func(t *testing.T) {
+		_, err := ParseNS("blah", ns)
+		if ok := errors.Is(err, errStringSize); !ok {
+			t.Fatalf("got %T, want %T", err, errStringSize)
+		}
+	})
+}
